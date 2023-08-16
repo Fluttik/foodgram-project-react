@@ -1,5 +1,31 @@
 from django.contrib import admin
-from .models import Tag, Ingridient
+from recipes.models import (
+    Ingredient,
+    RecipeIngredient,
+    Recipe,
+    Tag
+)
 
-admin.site.register(Tag)
-admin.site.register(Ingridient)
+
+class RecipeIngredientInline(admin.StackedInline):
+    model = RecipeIngredient
+    min_num = 1
+
+
+@admin.register(Recipe)
+class RecipeAdmin(admin.ModelAdmin):
+    list_display = ('name', 'author',)
+    list_filter = ('name', 'author', 'tags')
+    inlines = [RecipeIngredientInline]
+
+
+@admin.register(Ingredient)
+class IngredientAdmin(admin.ModelAdmin):
+    list_display = ('name', 'measurement_unit')
+    list_filter = ('name',)
+    search_fields = ('name',)
+
+
+@admin.register(Tag)
+class TagAdmin(admin.ModelAdmin):
+    list_display = ('name', 'color', 'slug')
