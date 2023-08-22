@@ -16,15 +16,19 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework.routers import SimpleRouter
-from api.views import TagsViewSet
+from api.views import TagsViewSet, IngredientViewSet, FollowView, FollowsView, RecipeViewSet
 
 router = SimpleRouter()
 
 router.register('tags', TagsViewSet)
+router.register('ingredients', IngredientViewSet)
+router.register('recipes', RecipeViewSet)
 
 urlpatterns = [
+    path('api/users/subscriptions/', FollowsView.as_view()),
     path('admin/', admin.site.urls),
     path('api/', include('djoser.urls')),
     path('api/auth/', include('djoser.urls.authtoken')),
-    path('api/', include(router.urls))
+    path('api/', include(router.urls)),
+    path('api/users/<int:id>/subscribe/', FollowView.as_view()),
 ]

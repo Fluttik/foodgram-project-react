@@ -38,7 +38,7 @@ class Ingredient(models.Model):
 class Recipe(models.Model):
     author = models.ForeignKey(
         User,
-        related_name='recipes',
+        related_name='recipe',
         verbose_name='Автор рецепта',
         on_delete=models.CASCADE,
     )
@@ -46,28 +46,32 @@ class Recipe(models.Model):
         verbose_name='Название рецепта',
         max_length=200
     )
-    image = models.ImageField(
-        verbose_name='Картинка рецепта',
-        upload_to='recipes/'
-    )
+    # image = models.ImageField(
+    #     verbose_name='Картинка рецепта',
+    #     upload_to='recipes/'
+    # )
+    pub_date = models.DateTimeField(auto_now_add=True)
     text = models.TextField(verbose_name='Текст рецепта',)
     tags = models.ManyToManyField('Tag', related_name='recipes')
     cooking_time = models.PositiveSmallIntegerField(
         verbose_name='Время приготовления'
+    )
+    ingredients = models.ManyToManyField(
+        Ingredient,
+        through='RecipeIngredient',
     )
 
 
 class RecipeIngredient(models.Model):
     recipe = models.ForeignKey(
         Recipe, on_delete=models.CASCADE,
-        related_name='ingredients_amount',
+        related_name='recipe_ingredients',
         verbose_name='Рецепт',
         help_text='Рецепт',
     )
     ingredient = models.ForeignKey(
         Ingredient,
         on_delete=models.CASCADE,
-        related_name='+',
         verbose_name='Ингредиент',
         help_text='Ингредиент',
     )
@@ -108,23 +112,24 @@ class Favorite(models.Model):
             ),
         )
 
-    class ShoppingBasket(models.Model):
-        user = models.ForeignKey(
-            User,
-            on_delete=models.CASCADE,
-            related_name='shopping_basket'
-        )
-        recipe = models.ForeignKey(
-            Recipe,
-            on_delete=models.CASCADE,
-        )
 
-        class Meta:
-            verbose_name = 'Список покупок'
-            verbose_name_plural = 'Списки покупок'
-            constraints = (
-                models.UniqueConstraint(
-                    fields=('user', 'recipe'),
-                    name='unique_shopping_cart',
-                ),
-            )
+class ShoppingBasket(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='shopping_basket'
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+    )
+
+    class Meta:
+        verbose_name = 'Список покупок'
+        verbose_name_plural = 'Списки покупок'
+        constraints = (
+            models.UniqueConstraint(
+                fields=('user', 'recipe'),
+                name='unique_shopping_cart',
+            ),
+        )
