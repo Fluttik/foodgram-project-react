@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, filters, mixins, permissions, status, generics
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -9,6 +10,7 @@ from rest_framework.views import APIView
 from recipes.models import Tag, Recipe, RecipeIngredient, Ingredient
 from api.serializers import TagSerializer, IngredientSerializer, RecipeReadSerializer, FollowSerializer, RecipeCreateSerializer
 from api.permissions import IsAuthorOrReadOnlyPermission
+from api.filters import RecipeFilter
 
 User = get_user_model()
 
@@ -24,11 +26,25 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = IngredientSerializer
     filter_backends = (filters.SearchFilter,)
     search_fields = ('^name',)
+    pagination_class = None
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
+    filter_backends = (DjangoFilterBackend,)
+    filter_class = RecipeFilter
+    filter_fields = ('author',)
     permission_classes = (IsAuthorOrReadOnlyPermission,)
+
+    def get_queryset(self):
+        queryset = Recipe.objects.all()
+        author = self.request.query_params.getlist('author')
+        if author:
+            queryset = queryset.filter(author_id=author.pop()).distinct()
+        tags = self.request.query_params.getlist('tags')
+        if tags:
+            queryset = queryset.filter(tags__slug__in=tags).distinct()
+        return queryset
 
     def get_serializer_class(self):
         if self.action == 'create':

@@ -17,8 +17,11 @@ class Tag(models.Model):
     )
     slug = models.SlugField(unique=True)
 
+    class Meta:
+        ordering = ('name',)
+
     def __str__(self) -> str:
-        return self.name
+        return self.slug
 
 
 class Ingredient(models.Model):
@@ -46,10 +49,10 @@ class Recipe(models.Model):
         verbose_name='Название рецепта',
         max_length=200
     )
-    # image = models.ImageField(
-    #     verbose_name='Картинка рецепта',
-    #     upload_to='recipes/'
-    # )
+    image = models.ImageField(
+        verbose_name='Картинка рецепта',
+        upload_to='recipes/image/'
+    )
     pub_date = models.DateTimeField(auto_now_add=True)
     text = models.TextField(verbose_name='Текст рецепта',)
     tags = models.ManyToManyField('Tag', related_name='recipes')
@@ -60,6 +63,9 @@ class Recipe(models.Model):
         Ingredient,
         through='RecipeIngredient',
     )
+
+    class Meta:
+        ordering = ('-pub_date',)
 
 
 class RecipeIngredient(models.Model):
