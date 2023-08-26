@@ -1,9 +1,17 @@
 import django_filters
 from django.contrib.auth import get_user_model
 
-from recipes.models import Recipe, Tag
+from recipes.models import Recipe, Tag, Ingredient
 
 User = get_user_model()
+
+
+class IngredientFilter(django_filters.FilterSet):
+    name = django_filters.filters.CharFilter(lookup_expr='istartswith')
+
+    class Meta:
+        model = Ingredient
+        fields = ('name',)
 
 # class CharFiterInFilter(django_filters.BaseInFilter, django_filters.CharFilter):
 #     pass

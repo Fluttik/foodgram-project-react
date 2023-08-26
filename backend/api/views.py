@@ -10,7 +10,7 @@ from rest_framework.views import APIView
 from recipes.models import Tag, Recipe, RecipeIngredient, Ingredient
 from api.serializers import TagSerializer, IngredientSerializer, RecipeReadSerializer, FollowSerializer, RecipeCreateSerializer
 from api.permissions import IsAuthorOrReadOnlyPermission
-from api.filters import RecipeFilter
+from api.filters import RecipeFilter, IngredientFilter
 
 User = get_user_model()
 
@@ -24,8 +24,8 @@ class TagsViewSet(viewsets.ReadOnlyModelViewSet):
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('^name',)
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = IngredientFilter
     pagination_class = None
 
 
