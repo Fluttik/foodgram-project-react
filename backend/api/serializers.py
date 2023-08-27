@@ -3,6 +3,7 @@ from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 from djoser.serializers import UserSerializer
 from recipes.models import Recipe, RecipeIngredient, Tag, Ingredient, Favorite, ShoppingBasket
+from users.models import Follow
 
 User = get_user_model()
 
@@ -190,3 +191,18 @@ class FavoriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Favorite
         fields = ('id',)
+
+
+class CustomUserSerializer(UserSerializer):
+    first_name = serializers.CharField()
+    last_name = serializers.CharField()
+    is_subscribed = serializers.SerializerMethodField()
+
+    class Meta(UserSerializer.Meta):
+        fields = ('email', 'id', 'username', 'first_name', 'last_name', 'is_subscribed')
+
+    def get_is_subscribed(self, obj):
+        user = self.context['request'].user
+        if user.is_anonymous:
+            return False
+        return Follow.objects.filter(user=user, author=obj).exists()

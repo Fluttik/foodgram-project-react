@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 """
 
 import os
-from pathlib import Path
+
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -133,6 +133,9 @@ DJOSER = {
         'user': ['rest_framework.permissions.IsAuthenticated'],
         'token_create': ['rest_framework.permissions.AllowAny'],
         'token_destroy': ['djoser.permissions.CurrentUserOrAdmin'],
+    },
+    'SERIALIZERS': {
+        'user': 'api.serializers.CustomUserSerializer',
     }
 }
 
