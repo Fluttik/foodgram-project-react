@@ -1,5 +1,5 @@
-from pathlib import Path
 from decimal import Decimal
+from pathlib import Path
 
 from borb.pdf import (Document,
                       Page,
@@ -11,7 +11,8 @@ from borb.pdf import (Document,
 from borb.pdf.canvas.font.simple_font.true_type_font import TrueTypeFont
 from borb.pdf.canvas.color.color import HexColor
 from borb.pdf.canvas.layout.image.barcode import Barcode, BarcodeType
-from borb.pdf.canvas.layout.table.flexible_column_width_table import FlexibleColumnWidthTable
+
+from borb.pdf.canvas.layout.table import flexible_column_width_table
 
 
 def create_pdf(text):
@@ -34,19 +35,20 @@ def create_pdf(text):
                          font=custom_font,
                          horizontal_alignment=Alignment.CENTERED,
                          font_size=Decimal(20)))
-
     for ingr in text:
         t = (
-            f'{ingr["recipe__recipe_ingredients__ingredient__name"]} - '
+            f'{ingr["recipe__r_i__ingredient__name"]} - '
             f'{ingr["amount"]} '
-            f'({ingr["recipe__recipe_ingredients__ingredient__measurement_unit"]}) \n'
+            f'({ingr["recipe__r_i__ingredient__measurement_unit"]}) \n'
         )
         layout.add(Paragraph(t,
                              font=custom_font,
                              font_size=Decimal(14)))
 
     layout.add(
-        FlexibleColumnWidthTable(number_of_columns=2, number_of_rows=1)
+        flexible_column_width_table.FlexibleColumnWidthTable(
+                                    number_of_columns=2,
+                                    number_of_rows=1)
         .add(qr_code)
         .add(
             Paragraph(

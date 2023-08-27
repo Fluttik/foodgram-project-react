@@ -116,10 +116,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
             permission_classes=(permissions.IsAuthenticated,))
     def download_shopping_cart(self, request):
         ingredients = request.user.shopping_basket.values(
-            'recipe__recipe_ingredients__ingredient__name',
-            'recipe__recipe_ingredients__ingredient__measurement_unit'
-        ).annotate(amount=Sum('recipe__recipe_ingredients__amount'))
-        print(type(ingredients))
+            'recipe__r_i__ingredient__name',
+            'recipe__r_i__ingredient__measurement_unit'
+        ).annotate(amount=Sum('recipe__r_i__amount'))
         path_file = create_pdf(ingredients)
         response = FileResponse(open(path_file, 'rb'),
                                 content_type='application/pdf')

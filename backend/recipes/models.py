@@ -75,7 +75,7 @@ class RecipeIngredient(models.Model):
     """Модель для связи рецептов с их ингредиентами."""
     recipe = models.ForeignKey(
         Recipe, on_delete=models.CASCADE,
-        related_name='recipe_ingredients',
+        related_name='r_i',
         verbose_name='Рецепт',
         help_text='Рецепт',
     )
