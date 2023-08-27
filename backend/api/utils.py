@@ -50,22 +50,17 @@ def create_pdf(text):
                                     number_of_columns=2,
                                     number_of_rows=1)
         .add(qr_code)
-        .add(
-            Paragraph(
-                """
-                Николай Королёв
-                Github аккаунт
-                """,
-                font=custom_font,
-                padding_top=Decimal(12),
-                respect_newlines_in_text=True,
-                font_color=HexColor("#666666"),
-                font_size=Decimal(10),
-                horizontal_alignment=Alignment.LEFT
-            )
-        )
-        .no_borders()
-    )
+        .add(Paragraph("""
+                       Николай Королёв
+                       Github аккаунт
+                       """,
+                       font=custom_font,
+                       padding_top=Decimal(12),
+                       respect_newlines_in_text=True,
+                       font_color=HexColor("#666666"),
+                       font_size=Decimal(10),
+                       horizontal_alignment=Alignment.LEFT)).no_borders())
+
     with open(Path("file.pdf"), "wb") as pdf_file_handle:
         PDF.dumps(pdf_file_handle, pdf)
 
