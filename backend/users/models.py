@@ -6,6 +6,7 @@ from users.validators import validate_username
 
 
 class User(AbstractUser):
+    """Модель пользователя."""
     username = models.CharField(
         verbose_name='Логин',
         max_length=150,
@@ -53,6 +54,7 @@ class User(AbstractUser):
 
 
 class Follow(models.Model):
+    """Модель для подписок."""
     user = models.ForeignKey(
         User,
         related_name='follower',

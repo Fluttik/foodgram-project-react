@@ -1,30 +1,37 @@
 from django.contrib.auth import get_user_model
 from django.db.models import Sum
-from django.shortcuts import render
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
-from rest_framework import viewsets, filters, mixins, permissions, status, generics
+from rest_framework import viewsets, permissions, status, generics
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from recipes.models import Tag, Recipe, RecipeIngredient, Ingredient, Favorite, ShoppingBasket
-from api.serializers import TagSerializer, IngredientSerializer, RecipeReadSerializer, FollowSerializer, RecipeCreateSerializer, FollowRecipeSerializer
+from recipes.models import Tag, Recipe, Ingredient, Favorite, ShoppingBasket
+from api.serializers import (TagSerializer,
+                             IngredientSerializer,
+                             RecipeReadSerializer,
+                             FollowSerializer,
+                             RecipeCreateSerializer,
+                             FollowRecipeSerializer
+                             )
 from api.permissions import IsAuthorOrReadOnlyPermission
-from api.filters import RecipeFilter, IngredientFilter
+from api.filters import IngredientFilter
 from api.utils import create_pdf
 
 User = get_user_model()
 
 
 class TagsViewSet(viewsets.ReadOnlyModelViewSet):
+    """Вьюсет для тегов."""
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     pagination_class = None
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
+    """Вьюсет для ингредиентов."""
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     filter_backends = (DjangoFilterBackend,)
@@ -33,20 +40,26 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
+    """Вьюсет для рецептов.
+    get_queryset в зависимости от тела запроса фильтрует queryset
+    favorite используется для добавления и удаления рецепта
+    из избранного(POST, DELETE)
+    shopping_cart используется для добавления и удаления рецепта
+    из списка покупок (POST, DELETE)
+    download_shopping_cart на основе списка покупок создает pdf файл
+    с помощью функции pdf_create
+    """
     queryset = Recipe.objects.all()
-    filter_backends = (DjangoFilterBackend,)
-    filter_class = RecipeFilter
-    filter_fields = ('author', 'is_favorited')
     permission_classes = (IsAuthorOrReadOnlyPermission,)
 
     def get_queryset(self):
         queryset = Recipe.objects.all()
-        author = self.request.query_params.getlist('author')
 
+        author = self.request.query_params.getlist('author')
         if author:
             queryset = queryset.filter(author_id=author.pop()).distinct()
-        tags = self.request.query_params.getlist('tags')
 
+        tags = self.request.query_params.getlist('tags')
         if tags:
             queryset = queryset.filter(tags__slug__in=tags).distinct()
 
@@ -65,11 +78,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
         if self.action in ('create', 'partial_update'):
             return RecipeCreateSerializer
         return RecipeReadSerializer
-
-    # def get_permissions(self):
-    #     if self.action == 'DELETE':
-    #         return (IsAuthorOrReadOnlyPermission(),)
-    #     return super().get_permissions()
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
@@ -111,25 +119,18 @@ class RecipeViewSet(viewsets.ModelViewSet):
             'recipe__recipe_ingredients__ingredient__name',
             'recipe__recipe_ingredients__ingredient__measurement_unit'
         ).annotate(amount=Sum('recipe__recipe_ingredients__amount'))
-        # shopping_list = ''
-        # count_ingredients = 0
-        # for ingr in ingredients:
-        #     count_ingredients += 1
-        #     shopping_list += (
-        #         f'{count_ingredients}) '
-        #         f'{ingr["recipe__recipe_ingredients__ingredient__name"]} - '
-        #         f'{ingr["amount"]} '
-        #         f'({ingr["recipe__recipe_ingredients__ingredient__measurement_unit"]}) \n'
-        #     )
-        # print(shopping_list)
+        print(type(ingredients))
         path_file = create_pdf(ingredients)
-        response = FileResponse(open(path_file, 'rb'), content_type='application/pdf')
+        response = FileResponse(open(path_file, 'rb'),
+                                content_type='application/pdf')
         response['Content-Disposition'] = 'attachment; filename="file.pdf"'
         return response
 
 
 class FollowView(APIView):
-
+    """Вьюсет для подписок.
+    реализует функции подписки и отписки
+    """
     permission_classes = (permissions.IsAuthenticated,)
 
     def post(self, request, id):
@@ -162,6 +163,7 @@ class FollowView(APIView):
 
 
 class FollowsView(generics.ListAPIView):
+    """Вьюсет для отображения подписок."""
     serializer_class = FollowSerializer
     permission_classes = (permissions.IsAuthenticated,)
 

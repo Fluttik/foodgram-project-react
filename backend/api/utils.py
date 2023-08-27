@@ -1,31 +1,27 @@
 from pathlib import Path
-
-from borb.pdf import OrderedList
-from borb.pdf import Document
-from borb.pdf import Page
-from borb.pdf import SingleColumnLayout
-from borb.pdf import Paragraph
-from borb.pdf import PDF
-from borb.pdf import Alignment
-from borb.pdf.canvas.font.simple_font.true_type_font import TrueTypeFont
-from borb.pdf.canvas.color.color import HexColor  
-from borb.pdf.canvas.layout.layout_element import LayoutElement
-from borb.pdf.canvas.layout.image.barcode import Barcode, BarcodeType
 from decimal import Decimal
+
+from borb.pdf import (Document,
+                      Page,
+                      SingleColumnLayout,
+                      Paragraph,
+                      PDF,
+                      Alignment)
+
+from borb.pdf.canvas.font.simple_font.true_type_font import TrueTypeFont
+from borb.pdf.canvas.color.color import HexColor
+from borb.pdf.canvas.layout.image.barcode import Barcode, BarcodeType
 from borb.pdf.canvas.layout.table.flexible_column_width_table import FlexibleColumnWidthTable
 
 
 def create_pdf(text):
-    # create an empty Document
     pdf = Document()
     dir_path = Path(__file__).resolve().parents[1]
     font_path = Path(dir_path, "Arimo-Regular.ttf")
     custom_font = TrueTypeFont.true_type_font_from_file(font_path)
-    # add an empty Page
     page = Page()
     pdf.add_page(page)
 
-    # use a PageLayout (SingleColumnLayout in this case)
     layout = SingleColumnLayout(page)
 
     qr_code = Barcode(
@@ -39,10 +35,6 @@ def create_pdf(text):
                          horizontal_alignment=Alignment.CENTERED,
                          font_size=Decimal(20)))
 
-    # layout.add(Paragraph(text,
-    #            font=custom_font,
-    #            font_size=Decimal(14))
-    #            )
     for ingr in text:
         t = (
             f'{ingr["recipe__recipe_ingredients__ingredient__name"]} - '
@@ -76,4 +68,3 @@ def create_pdf(text):
         PDF.dumps(pdf_file_handle, pdf)
 
     return Path("file.pdf")
-
