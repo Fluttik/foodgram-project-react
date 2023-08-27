@@ -39,8 +39,8 @@ class RecipeReadSerializer(serializers.ModelSerializer):
         many=True,
         source='recipe_ingredients'
     )
-    # is_favorited = serializers.SerializerMethodField()
-    # is_in_shopping_card = serializers.SerializerMethodField()
+    is_favorited = serializers.SerializerMethodField()
+    is_in_shopping_cart = serializers.SerializerMethodField()
 
     class Meta:
         model = Recipe
@@ -48,8 +48,8 @@ class RecipeReadSerializer(serializers.ModelSerializer):
                   'tags',
                   'author',
                   'ingredients',
-                #   'is_favorited',
-                #   'is_in_shopping_card',
+                  'is_favorited',
+                  'is_in_shopping_cart',
                   'name',
                   'image',
                   'text',
@@ -58,18 +58,19 @@ class RecipeReadSerializer(serializers.ModelSerializer):
 
     def get_image(self, obj):
         return obj.image.url
-    # def get_is_favorited(self, obj):
-    #     request = self.context.get('request')
-    #     if request.user.is_anonymous:
-    #         return False
-    #     return Favorite.objects.filter(recipe=obj, user=request.user).exists()
 
-    # def get_is_in_shopping_card(self, obj):
-    #     request = self.context.get('request')
-    #     if request.user.is_anonymous:
-    #         return False
-    #     return ShoppingBasket.objects.filter(
-    #         recipe=obj, user=request.user).exists()
+    def get_is_favorited(self, obj):
+        request = self.context.get('request')
+        if request.user.is_anonymous:
+            return False
+        return Favorite.objects.filter(recipe=obj, user=request.user).exists()
+
+    def get_is_in_shopping_cart(self, obj):
+        request = self.context.get('request')
+        if request.user.is_anonymous:
+            return False
+        return ShoppingBasket.objects.filter(
+            recipe=obj, user=request.user).exists()
 
 
 class RecipeIngredientCreateSerializer(serializers.Serializer):
@@ -109,11 +110,16 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         return instance
 
     def update(self, instance, validated_data):
-        ingredients = validated_data.pop('ingredients')
-        # image = validated_data.pop('image')
-        # print(image)
-        instance = super().update(instance, validated_data)
-        instance.ingredients_amount.all().delete()
+        instance.image = validated_data.get('image', instance.image)
+        instance.name = validated_data.get('name', instance.name)
+        instance.text = validated_data.get('text', instance.text)
+        instance.cooking_time = validated_data.get('cooking_time',
+                                                   instance.cooking_time)
+        instance.tags.clear()
+        tags_data = self.initial_data.get('tags')
+        instance.tags.set(tags_data)
+        RecipeIngredient.objects.filter(recipe=instance).all().delete()
+        ingredients = validated_data.get('ingredients')
         bulk_list = []
         for ing in ingredients:
             bulk_list.append(
@@ -121,9 +127,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
                                  amount=ing['amount']))
         RecipeIngredient.objects.bulk_create(bulk_list,
                                              batch_size=len(ingredients))
-        tags = self.initial_data.pop("tags")
-        instance.tags.set(tags)
-        print(instance)
+        instance.save()
         return instance
 
     def to_representation(self, instance):
@@ -142,6 +146,9 @@ class FollowRecipeSerializer(serializers.ModelSerializer):
             "image",
             "cooking_time",
         )
+
+    def get_image(self, obj):
+        return obj.image.url
 
 
 class FollowSerializer(serializers.ModelSerializer):

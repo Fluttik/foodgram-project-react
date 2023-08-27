@@ -33,7 +33,14 @@ class RecipeFilter(django_filters.FilterSet):
     author = django_filters.ModelChoiceFilter(
         queryset=User.objects.all()
     )
-    
+    is_favorited = django_filters.BooleanFilter(method='filter_favorited')
+
+    def filter_favorited(self, queryset, name, value):
+        if self.request.user.is_authenticated:
+            print('******')
+            return queryset.filter(recipe_favorites_user=self.request.user)
+        return queryset
+
     class Meta:
         model = Recipe
-        fields = ('author',)
+        fields = ('author', 'is_favorited')
