@@ -25,11 +25,10 @@ def create_pdf(text):
 
     layout = SingleColumnLayout(page)
 
-    qr_code = Barcode(
-        data="https://github.com/Fluttik",
-        width=Decimal(64),
-        height=Decimal(64),
-        type=BarcodeType.QR,)
+    qr_code = Barcode(data="https://github.com/Fluttik",
+                      width=Decimal(64),
+                      height=Decimal(64),
+                      type=BarcodeType.QR,)
 
     layout.add(Paragraph('Список покупок',
                          font=custom_font,
