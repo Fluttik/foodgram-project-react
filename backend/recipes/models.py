@@ -2,17 +2,18 @@ from django.db import models
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
+MAX_CHAR_LENGTH = 200
 
 
 class Tag(models.Model):
     """Модель тэгов."""
     name = models.CharField(
-        verbose_name='Название тэга',
-        max_length=200,
+        verbose_name='название тэга',
+        max_length=MAX_CHAR_LENGTH,
         unique=True
     )
     color = models.CharField(
-        verbose_name='Цвет в hex формате',
+        verbose_name='цвет в hex формате',
         max_length=7,
         unique=True
     )
@@ -28,12 +29,12 @@ class Tag(models.Model):
 class Ingredient(models.Model):
     """Модель ингридиентов."""
     name = models.CharField(
-        verbose_name='Название ингридиента',
-        max_length=200
+        verbose_name='название ингридиента',
+        max_length=MAX_CHAR_LENGTH
     )
     measurement_unit = models.CharField(
-        verbose_name='Единица измерения',
-        max_length=200
+        verbose_name='единица измерения',
+        max_length=MAX_CHAR_LENGTH
     )
 
     def __str__(self) -> str:
@@ -45,22 +46,24 @@ class Recipe(models.Model):
     author = models.ForeignKey(
         User,
         related_name='recipe',
-        verbose_name='Автор рецепта',
+        verbose_name='автор рецепта',
         on_delete=models.CASCADE,
+        # db_index=True,
     )
     name = models.CharField(
-        verbose_name='Название рецепта',
-        max_length=200
+        verbose_name='название рецепта',
+        max_length=MAX_CHAR_LENGTH,
+        # db_index=True
     )
     image = models.ImageField(
-        verbose_name='Картинка рецепта',
+        verbose_name='картинка рецепта',
         upload_to='recipes/image/'
     )
     pub_date = models.DateTimeField(auto_now_add=True)
-    text = models.TextField(verbose_name='Текст рецепта',)
+    text = models.TextField(verbose_name='текст рецепта',)
     tags = models.ManyToManyField('Tag', related_name='recipes')
     cooking_time = models.PositiveSmallIntegerField(
-        verbose_name='Время приготовления'
+        verbose_name='время приготовления'
     )
     ingredients = models.ManyToManyField(
         Ingredient,
@@ -76,13 +79,13 @@ class RecipeIngredient(models.Model):
     recipe = models.ForeignKey(
         Recipe, on_delete=models.CASCADE,
         related_name='r_i',
-        verbose_name='Рецепт',
+        verbose_name='рецепт',
         help_text='Рецепт',
     )
     ingredient = models.ForeignKey(
         Ingredient,
         on_delete=models.CASCADE,
-        verbose_name='Ингредиент',
+        verbose_name='ингредиент',
         help_text='Ингредиент',
     )
     amount = models.PositiveSmallIntegerField(verbose_name='Количество')
@@ -93,8 +96,8 @@ class RecipeIngredient(models.Model):
                 fields=('recipe', 'ingredient',),
                 name='Уникальный ингридиент в рецепте'),
         )
-        verbose_name = 'Ингредиент в рецепте'
-        verbose_name_plural = 'Ингредиенты в рецепте'
+        verbose_name = 'ингредиент в рецепте'
+        verbose_name_plural = 'ингредиенты в рецепте'
 
     def __str__(self):
         return f'{self.recipe}: {self.ingredient} – {self.amount}'
@@ -106,16 +109,16 @@ class Favorite(models.Model):
         User,
         on_delete=models.CASCADE,
         related_name='favorites',
-        verbose_name='Пользователь',
+        verbose_name='пользователь',
     )
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        verbose_name='Избранный рецепт'
+        verbose_name='избранный рецепт'
     )
 
     class Meta:
-        verbose_name = 'Избранное'
+        verbose_name = 'избранное'
         constraints = (
             models.UniqueConstraint(
                 fields=('user', 'recipe'),
@@ -137,8 +140,8 @@ class ShoppingBasket(models.Model):
     )
 
     class Meta:
-        verbose_name = 'Список покупок'
-        verbose_name_plural = 'Списки покупок'
+        verbose_name = 'список покупок'
+        verbose_name_plural = 'списки покупок'
         constraints = (
             models.UniqueConstraint(
                 fields=('user', 'recipe'),
