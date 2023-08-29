@@ -48,12 +48,11 @@ class Recipe(models.Model):
         related_name='recipe',
         verbose_name='автор рецепта',
         on_delete=models.CASCADE,
-        # db_index=True,
+        db_index=True,
     )
     name = models.CharField(
         verbose_name='название рецепта',
         max_length=MAX_CHAR_LENGTH,
-        # db_index=True
     )
     image = models.ImageField(
         verbose_name='картинка рецепта',
@@ -108,13 +107,13 @@ class Favorite(models.Model):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='favorites',
         verbose_name='пользователь',
     )
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        verbose_name='избранный рецепт'
+        verbose_name='избранный рецепт',
+        related_name='favorites',
     )
 
     class Meta:
@@ -132,11 +131,11 @@ class ShoppingBasket(models.Model):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='shopping_basket'
     )
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
+        related_name='shopping_basket',
     )
 
     class Meta:

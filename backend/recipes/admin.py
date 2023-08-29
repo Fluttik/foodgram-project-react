@@ -3,7 +3,8 @@ from recipes.models import (
     Ingredient,
     RecipeIngredient,
     Recipe,
-    Tag
+    Tag,
+    Favorite
 )
 
 
@@ -29,3 +30,8 @@ class IngredientAdmin(admin.ModelAdmin):
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
     list_display = ('name', 'color', 'slug')
+
+
+@admin.register(Favorite)
+class FavoriteAdmin(admin.ModelAdmin):
+    list_display = ('user', 'recipe')

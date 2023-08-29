@@ -7,7 +7,6 @@ from recipes.models import (Recipe,
                             Tag,
                             Ingredient,
                             Favorite,
-                            ShoppingBasket
                             )
 from users.models import Follow
 
@@ -68,16 +67,16 @@ class RecipeReadSerializer(serializers.ModelSerializer):
 
     def get_is_favorited(self, obj):
         request = self.context.get('request')
-        if request.user.is_anonymous:
-            return False
-        return Favorite.objects.filter(recipe=obj, user=request.user).exists()
+        return (not request.user.is_anonymous and
+                obj.favorites.filter(
+                    recipe=obj, user=request.user).exists()
+                )
 
     def get_is_in_shopping_cart(self, obj):
         request = self.context.get('request')
-        if request.user.is_anonymous:
-            return False
-        return ShoppingBasket.objects.filter(
-            recipe=obj, user=request.user).exists()
+        return (not request.user.is_anonymous and
+                obj.shopping_basket.filter(user=request.user).exists()
+                )
 
 
 class RecipeIngredientCreateSerializer(serializers.Serializer):
@@ -117,28 +116,22 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         return instance
 
     def update(self, instance, validated_data):
-        instance.image = validated_data.get('image', instance.image)
-        instance.name = validated_data.get('name', instance.name)
-        instance.text = validated_data.get('text', instance.text)
-        instance.cooking_time = validated_data.get('cooking_time',
-                                                   instance.cooking_time)
-        instance.tags.clear()
-        tags_data = self.initial_data.get('tags')
+        if "ingredients" in validated_data:
+            ingredients = validated_data.pop("ingredients")
+            instance.r_i.all().delete()
+            bulk_list = []
+            for ing in ingredients:
+                bulk_list.append(
+                    RecipeIngredient(recipe=instance, ingredient_id=ing['id'],
+                                     amount=ing['amount']))
+            RecipeIngredient.objects.bulk_create(bulk_list,
+                                                 batch_size=len(ingredients))
+        tags_data = self.initial_data.pop("tags")
         instance.tags.set(tags_data)
-        RecipeIngredient.objects.filter(recipe=instance).all().delete()
-        ingredients = validated_data.get('ingredients')
-        bulk_list = []
-        for ing in ingredients:
-            bulk_list.append(
-                RecipeIngredient(recipe=instance, ingredient_id=ing['id'],
-                                 amount=ing['amount']))
-        RecipeIngredient.objects.bulk_create(bulk_list,
-                                             batch_size=len(ingredients))
-        instance.save()
-        return instance
+        return super().update(instance, validated_data)
 
     def to_representation(self, instance):
-        serializer = RecipeReadSerializer(instance)
+        serializer = RecipeReadSerializer(instance, context=self.context)
         return serializer.data
 
 
@@ -185,7 +178,7 @@ class FollowSerializer(serializers.ModelSerializer):
         return obj.user.follower.filter(author=obj.author).exists()
 
     def get_recipes(self, obj):
-        queryset = obj.author.recipe.all().order_by('-pub_date')
+        queryset = obj.author.recipe.all()
         return FollowRecipeSerializer(queryset, many=True).data
 
     def get_recipes_count(self, obj):

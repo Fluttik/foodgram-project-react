@@ -17,7 +17,7 @@ from api.serializers import (TagSerializer,
                              FollowRecipeSerializer
                              )
 from api.permissions import IsAuthorOrReadOnlyPermission
-from api.filters import IngredientFilter
+from api.filters import IngredientFilter, RecipeFilter
 from api.utils import create_pdf
 
 User = get_user_model()
@@ -49,19 +49,12 @@ class RecipeViewSet(viewsets.ModelViewSet):
     download_shopping_cart на основе списка покупок создает pdf файл
     с помощью функции pdf_create
     """
-    queryset = Recipe.objects.all()
     permission_classes = (IsAuthorOrReadOnlyPermission,)
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = RecipeFilter
 
     def get_queryset(self):
         queryset = Recipe.objects.all()
-
-        author = self.request.query_params.getlist('author')
-        if author:
-            queryset = queryset.filter(author_id=author.pop()).distinct()
-
-        tags = self.request.query_params.getlist('tags')
-        if tags:
-            queryset = queryset.filter(tags__slug__in=tags).distinct()
 
         if self.request.GET.get('is_favorited'):
             favorite_recipes_ids = Favorite.objects.filter(

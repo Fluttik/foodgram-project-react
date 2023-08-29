@@ -10,7 +10,7 @@ router = SimpleRouter()
 
 router.register('tags', TagsViewSet)
 router.register('ingredients', IngredientViewSet)
-router.register('recipes', RecipeViewSet)
+router.register('recipes', RecipeViewSet, basename='recipe-list')
 
 urlpatterns = [
     path('users/subscriptions/', FollowsView.as_view()),
