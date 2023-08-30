@@ -17,7 +17,7 @@ class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
         fields = ('id', 'name', 'color', 'slug',)
-        read_only_fields = ('id', 'name', 'color', 'slug',)
+        read_only_fields = ('name', 'color', 'slug',)
 
 
 class IngredientSerializer(serializers.ModelSerializer):
@@ -103,9 +103,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         fields = ('id', 'tags', 'author', 'name', 'image', 'text',
                   'ingredients', 'cooking_time')
 
-    def create(self, validated_data):
-        ingredients = validated_data.pop('ingredients')
-        instance = super().create(validated_data)
+    def ingredients_create(self, instance, ingredients):
         bulk_list = []
         for ing in ingredients:
             bulk_list.append(
@@ -113,19 +111,18 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
                                  amount=ing['amount']))
         RecipeIngredient.objects.bulk_create(bulk_list,
                                              batch_size=len(ingredients))
+
+    def create(self, validated_data):
+        ingredients = validated_data.pop('ingredients')
+        instance = super().create(validated_data)
+        self.ingredients_create(instance, ingredients)
         return instance
 
     def update(self, instance, validated_data):
         if "ingredients" in validated_data:
             ingredients = validated_data.pop("ingredients")
             instance.r_i.all().delete()
-            bulk_list = []
-            for ing in ingredients:
-                bulk_list.append(
-                    RecipeIngredient(recipe=instance, ingredient_id=ing['id'],
-                                     amount=ing['amount']))
-            RecipeIngredient.objects.bulk_create(bulk_list,
-                                                 batch_size=len(ingredients))
+            self.ingredients_create(instance, ingredients)
         tags_data = self.initial_data.pop("tags")
         instance.tags.set(tags_data)
         return super().update(instance, validated_data)

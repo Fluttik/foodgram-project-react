@@ -30,7 +30,8 @@ class Ingredient(models.Model):
     """Модель ингридиентов."""
     name = models.CharField(
         verbose_name='название ингридиента',
-        max_length=MAX_CHAR_LENGTH
+        max_length=MAX_CHAR_LENGTH,
+        db_index=True,
     )
     measurement_unit = models.CharField(
         verbose_name='единица измерения',
@@ -60,7 +61,10 @@ class Recipe(models.Model):
     )
     pub_date = models.DateTimeField(auto_now_add=True)
     text = models.TextField(verbose_name='текст рецепта',)
-    tags = models.ManyToManyField('Tag', related_name='recipes')
+    tags = models.ManyToManyField('Tag',
+                                  related_name='recipes',
+                                  db_index=True,
+                                  )
     cooking_time = models.PositiveSmallIntegerField(
         verbose_name='время приготовления'
     )
