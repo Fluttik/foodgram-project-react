@@ -8,5 +8,5 @@ FROM python:3.9
 
  COPY . .
 
-CMD ["python", "manage.py", "runserver", "0:8000"]
-#  CMD ["gunicorn", "foodgram.wsgi:application", "--bind", "0:8000" ]
+# CMD ["python", "manage.py", "runserver", "0:8000"]
+CMD ["gunicorn", "--bind", "0:9000", "foodgram.wsgi:application"]
