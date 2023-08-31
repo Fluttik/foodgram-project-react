@@ -9,7 +9,7 @@ MODELS_DATA = {
     Ingredient: 'ingredients.csv',
 }
 
-FOODGRAMM_DIR = path.abspath(path.join(BASE_DIR, '../'))
+FOODGRAMM_DIR = path.abspath(path.join(BASE_DIR))
 
 
 class Command (BaseCommand):
