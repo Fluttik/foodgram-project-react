@@ -38,7 +38,6 @@ def create_pdf(text):
                       font_size=Decimal(10),
                       horizontal_alignment=Alignment.LEFT
                       )
-
     layout.add(Paragraph('Список покупок',
                          font=custom_font,
                          horizontal_alignment=Alignment.CENTERED,
@@ -52,12 +51,10 @@ def create_pdf(text):
         layout.add(Paragraph(t,
                              font=custom_font,
                              font_size=Decimal(14)))
-
     layout.add(
         ft.FlexibleColumnWidthTable(number_of_columns=2, number_of_rows=1)
         .add(qr_code)
-        .add(Paragraph(about)).no_borders())
-
+        .add(about).no_borders())
     with open(Path("file.pdf"), "wb") as pdf_file_handle:
         PDF.dumps(pdf_file_handle, pdf)
 
