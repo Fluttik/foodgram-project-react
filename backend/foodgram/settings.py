@@ -26,7 +26,7 @@ SECRET_KEY = env('SECRET_KEY')
 DEBUG = env('DEBUG', False)
 
 ALLOWED_HOSTS = ['51.250.101.236', '127.0.0.1', 'localhost', 'fluttik.fun']
-CSRF_TRUSTED_ORIGINS = ['https://51.250.101.236', 'https://127.0.0.1', 'https://localhost', 'https://fluttik.fun']
+CSRF_TRUSTED_ORIGINS = ['https://51.250.101.236', 'https://127.0.0.1', 'localhost', 'https://fluttik.fun']
 
 # Application definition
 
