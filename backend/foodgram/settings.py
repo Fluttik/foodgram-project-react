@@ -94,7 +94,7 @@ DATABASES = {
         'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'foodgram_password'),
         'HOST': os.getenv('DB_HOST', 'db'),
         'PORT': os.getenv('DB_PORT', 5432)
-        }
+    }
 }
 
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
