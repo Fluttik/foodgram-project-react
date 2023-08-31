@@ -55,16 +55,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = Recipe.objects.all()
-
-        # if self.request.GET.get('is_favorited'):
-        #     favorite_recipes_ids = Favorite.objects.filter(
-        #         user_id=self.request.user.id).values('recipe_id')
-        #     return queryset.filter(pk__in=favorite_recipes_ids)
-
-        # if self.request.GET.get('is_in_shopping_cart'):
-        #     basket_recipes_ids = ShoppingBasket.objects.filter(
-        #         user_id=self.request.user.id).values('recipe_id')
-        #     return queryset.filter(pk__in=basket_recipes_ids)
         return queryset
 
     def get_serializer_class(self):

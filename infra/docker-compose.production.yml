@@ -15,29 +15,23 @@ services:
       - pg_data:/var/lib/postgresql/data
 
   backend:
-    build: 
-      context: ../backend
-      dockerfile: Dockerfile
+    image: fluttik/foodgram_backend
     restart: always
     volumes:
       - static:/app/static
-      # - static:/backend_static
       - media:/app/media
     depends_on:
     - db
 
   frontend:
-    build:
-      context: ../frontend
-      dockerfile: Dockerfile
+    image: fluttik/foodgram_frontend
     volumes:
       - ../frontend/:/app/result_build/
 
   nginx:
-    # build: ../infra
-    image: nginx:1.19.3
+    image: fluttik/foodgram_gateway
     ports:
-      - "80:80"
+      - 9000:80
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
       - ../frontend/build:/usr/share/nginx/html/
@@ -47,20 +41,3 @@ services:
       - media:/app/media
     depends_on:
       - backend
-
-  # frontend:
-  #   build:
-  #     context: ../frontend
-  #     dockerfile: Dockerfile
-  #   volumes:
-  #     - ../frontend/:/app/result_build/
-
-  # nginx:
-  #   image: nginx:1.19.3
-  #   ports:
-  #     - "80:80"
-  #   volumes:
-  #     - ./nginx.conf:/etc/nginx/conf.d/default.conf
-  #     - ../frontend/build:/usr/share/nginx/html/
-  #     - ../docs/:/usr/share/nginx/html/api/docs/
-
