@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 from djoser.serializers import UserSerializer
 from recipes.models import (Recipe,
                             RecipeIngredient,
@@ -11,6 +12,25 @@ from recipes.models import (Recipe,
 from users.models import Follow
 
 User = get_user_model()
+
+class CustomUserSerializer(UserSerializer):
+    first_name = serializers.CharField()
+    last_name = serializers.CharField()
+    is_subscribed = serializers.SerializerMethodField()
+
+    class Meta(UserSerializer.Meta):
+        fields = ('email',
+                  'id',
+                  'username',
+                  'first_name',
+                  'last_name',
+                  'is_subscribed')
+
+    def get_is_subscribed(self, obj):
+        user = self.context['request'].user
+        if user.is_anonymous:
+            return False
+        return Follow.objects.filter(user=user, author=obj).exists()
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -40,14 +60,14 @@ class RecipeIngredientReadSerializer(serializers.ModelSerializer):
 
 class RecipeReadSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True, read_only=True,)
-    author = UserSerializer()
+    author = CustomUserSerializer()
     ingredients = RecipeIngredientReadSerializer(
         many=True,
         source='r_i'
     )
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
-
+    # is_subscribed = serializers.SerializerMethodField()
     class Meta:
         model = Recipe
         fields = ('id',
@@ -56,6 +76,7 @@ class RecipeReadSerializer(serializers.ModelSerializer):
                   'ingredients',
                   'is_favorited',
                   'is_in_shopping_cart',
+                #   'is_subscribed',
                   'name',
                   'image',
                   'text',
@@ -77,7 +98,13 @@ class RecipeReadSerializer(serializers.ModelSerializer):
         return (not request.user.is_anonymous
                 and obj.shopping_basket.filter(user=request.user).exists()
                 )
-
+    # def get_is_subscribed(self, obj):
+    #     request = self.context['request']
+    #     print(request.user)
+    #     print(obj.author)
+    #     print(Follow.objects.filter(user=request.user, author=obj.author).exists())
+    #     return (not request.user.is_anonymous)
+    #     return Follow.objects.filter(user=user, author=obj.author).exists()
 
 class RecipeIngredientCreateSerializer(serializers.Serializer):
     id = serializers.IntegerField()
@@ -131,6 +158,13 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         serializer = RecipeReadSerializer(instance, context=self.context)
         return serializer.data
 
+    def validate_cooking_time(self, data):
+        cooking_time = self.initial_data.get('cooking_time')
+        if int(cooking_time) < 1:
+            raise ValidationError(
+                'Убедитесь, что время приготовления больше либо равно 1')
+        return data
+
 
 class FollowRecipeSerializer(serializers.ModelSerializer):
     image = Base64ImageField(use_url=True)
@@ -176,6 +210,13 @@ class FollowSerializer(serializers.ModelSerializer):
 
     def get_recipes(self, obj):
         queryset = obj.author.recipe.all()
+        limit = self.context.get('request').query_params.get('recipes_limit')
+
+        if limit:
+            try:
+                queryset = queryset[:int(limit)]
+            except ValueError:
+                raise ValueError('Неверно задан параметр количества рецептов')
         return FollowRecipeSerializer(queryset, many=True).data
 
     def get_recipes_count(self, obj):
@@ -189,21 +230,3 @@ class FavoriteSerializer(serializers.ModelSerializer):
         fields = ('id',)
 
 
-class CustomUserSerializer(UserSerializer):
-    first_name = serializers.CharField()
-    last_name = serializers.CharField()
-    is_subscribed = serializers.SerializerMethodField()
-
-    class Meta(UserSerializer.Meta):
-        fields = ('email',
-                  'id',
-                  'username',
-                  'first_name',
-                  'last_name',
-                  'is_subscribed')
-
-    def get_is_subscribed(self, obj):
-        user = self.context['request'].user
-        if user.is_anonymous:
-            return False
-        return Follow.objects.filter(user=user, author=obj).exists()

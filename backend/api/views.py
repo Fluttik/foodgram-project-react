@@ -4,6 +4,7 @@ from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
+from rest_framework.pagination import LimitOffsetPagination
 from rest_framework import viewsets, permissions, status, generics
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -17,6 +18,7 @@ from api.serializers import (TagSerializer,
                              FollowRecipeSerializer
                              )
 from api.permissions import IsAuthorOrReadOnlyPermission
+from api.paginators import CustomPagination
 from api.filters import IngredientFilter, RecipeFilter
 from api.utils import create_pdf
 
@@ -52,6 +54,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthorOrReadOnlyPermission,)
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
+    pagination_class = CustomPagination
 
     def get_queryset(self):
         queryset = Recipe.objects.all()
@@ -148,6 +151,7 @@ class FollowsView(generics.ListAPIView):
     """Вьюсет для отображения подписок."""
     serializer_class = FollowSerializer
     permission_classes = (permissions.IsAuthenticated,)
+    pagination_class = LimitOffsetPagination
 
     def get_queryset(self):
         return self.request.user.follower.all()
