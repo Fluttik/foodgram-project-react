@@ -13,6 +13,7 @@ from users.models import Follow
 
 User = get_user_model()
 
+
 class CustomUserSerializer(UserSerializer):
     first_name = serializers.CharField()
     last_name = serializers.CharField()
@@ -67,7 +68,7 @@ class RecipeReadSerializer(serializers.ModelSerializer):
     )
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
-    # is_subscribed = serializers.SerializerMethodField()
+
     class Meta:
         model = Recipe
         fields = ('id',
@@ -76,7 +77,6 @@ class RecipeReadSerializer(serializers.ModelSerializer):
                   'ingredients',
                   'is_favorited',
                   'is_in_shopping_cart',
-                #   'is_subscribed',
                   'name',
                   'image',
                   'text',
@@ -98,13 +98,7 @@ class RecipeReadSerializer(serializers.ModelSerializer):
         return (not request.user.is_anonymous
                 and obj.shopping_basket.filter(user=request.user).exists()
                 )
-    # def get_is_subscribed(self, obj):
-    #     request = self.context['request']
-    #     print(request.user)
-    #     print(obj.author)
-    #     print(Follow.objects.filter(user=request.user, author=obj.author).exists())
-    #     return (not request.user.is_anonymous)
-    #     return Follow.objects.filter(user=user, author=obj.author).exists()
+
 
 class RecipeIngredientCreateSerializer(serializers.Serializer):
     id = serializers.IntegerField()
@@ -228,5 +222,3 @@ class FavoriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Favorite
         fields = ('id',)
-
-
